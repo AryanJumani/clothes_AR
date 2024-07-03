@@ -41,44 +41,20 @@ def segment_image(image):
     pred_seg = upsampled_logits.argmax(dim=1)[0]
     clothing_mask = pred_seg == 4  # Assuming clothing is class 4
 
-    # Convert the mask to a binary numpy array (255 where clothing, 0 otherwise)
-    binary_mask = clothing_mask.numpy().astype(np.uint8) * 255
+    image_np = np.array(image)
 
-    # Optionally invert the mask
-    inverted_mask = np.where(binary_mask == 255, 0, 255).astype(np.uint8)  # Ensure uint8 type here
+    # Create a white background
+    background_white = np.ones_like(image_np) * 255
 
-    # Convert the adjusted binary mask back to a PIL image for easier handling or visualization
-    mask_image = Image.fromarray(inverted_mask)
+    # Copy the clothing regions from the original image to the new image with a white background
+    for c in range(3):  # Assuming the image has 3 color channels (RGB)
+        background_white[:, :, c] = np.where(clothing_mask, image_np[:, :, c], 255)
 
-    return mask_image
+    # Convert the extracted clothing image back to PIL format
+    extracted_clothing_image_white_bg = Image.fromarray(background_white)
 
-def inpaint_image(image, mask):
-    if not isinstance(mask, np.ndarray):
-        # If mask is a PIL image, convert it to a numpy array
-        mask = np.array(mask)
+    return extracted_clothing_image_white_bg
 
-        # Ensure the mask is in 8-bit format
-    if mask.dtype != np.uint8:
-        mask = mask.astype(np.uint8)
-    _, mask = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)
-
-    # Convert original_image to BGR format for OpenCV if it's not already
-    if image.mode != 'RGB':
-        image = image.convert('RGB')
-    image = np.array(image)
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-
-    # Apply inpainting
-    inpainted_image = cv2.inpaint(image, mask, inpaintRadius=1, flags=cv2.INPAINT_TELEA)
-
-    # Convert back to RGB for consistency with PIL/Image output
-    inpainted_image = cv2.cvtColor(inpainted_image, cv2.COLOR_BGR2RGB)
-
-    return inpainted_image
-
-
-# Example usage
-image_url = "https://m.media-amazon.com/images/I/61qTPaU7dYL._AC_SX679_.jpg"
 from PIL import Image
 
 # Load your original image and mask here
@@ -86,10 +62,8 @@ url = "https://m.media-amazon.com/images/I/61qTPaU7dYL._AC_SX679_.jpg"
 response = requests.get(url, stream=True)
 original_image = Image.open(response.raw)
 
-mask = segment_image(original_image)
-final_image = inpaint_image(original_image, mask)
-cv2.imwrite('final_output.png', final_image)
-cv2.imshow('Result', final_image)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-
+segmented_img = segment_image(original_image)
+plt.imshow(segmented_img)
+plt.axis("off")
+plt.savefig("segmented_image.png", bbox_inches="tight")
+# The segmented image will be saved as "segmented_image.png" in the current directory
