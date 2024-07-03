@@ -1,0 +1,3 @@
+[submodule "flaskDev/flaskDev/humanPoseEstimation"]
+	path = flaskDev/flaskDev/humanPoseEstimation
+	url = https://github.com/Daniil-Osokin/lightweight-human-pose-estimation.pytorch
