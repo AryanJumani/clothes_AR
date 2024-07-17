@@ -1,3 +1,6 @@
 [submodule "flaskDev/flaskDev/humanPoseEstimation"]
 	path = flaskDev/flaskDev/humanPoseEstimation
 	url = https://github.com/Daniil-Osokin/lightweight-human-pose-estimation.pytorch
+[submodule "flaskDev/Clothware"]
+	path = flaskDev/Clothware
+	url = https://github.com/cameronking4/Clothware.git

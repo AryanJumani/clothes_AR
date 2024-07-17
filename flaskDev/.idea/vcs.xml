@@ -2,9 +2,6 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$/.." vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/humanPoseEstimation" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lightweight-human-pose-estimation" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lightweight-human-pose-estimation.pytorch" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/pifuhd" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/KGDet" vcs="Git" />
   </component>
 </project>
