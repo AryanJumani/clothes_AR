@@ -12,18 +12,35 @@ import org.opencv.android.Utils
 import org.opencv.imgproc.Imgproc
 import org.opencv.core.Size
 import org.opencv.core.Scalar
+import android.os.Bundle
+import android.util.Log
 
 class MainActivity : FlutterActivity() {
 
     private lateinit var net: Net
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        try {
+            System.loadLibrary("opencv_java4")
+            Log.d("OpenCV", "OpenCV library loaded successfully.")
+        } catch (e: UnsatisfiedLinkError) {
+            Log.e("OpenCV", "Failed to load OpenCV library: ${e.message}")
+        }
+        try {
+            val modelPath = applicationContext.getExternalFilesDir(null)!!.absolutePath + "/pose_landmark_full.onnx"
+            Log.i("OpenCV", "ONNX works")
+            net = Dnn.readNetFromONNX(modelPath)
+            Log.d("OpenCV", "ONNX model loaded successfully.")
+        } catch (e: Exception) {
+            Log.e("OpenCV", "Failed to load ONNX model: ${e.message}")
+        }
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        // Load the ONNX model
-        val modelPath = applicationContext.getExternalFilesDir(null)!!.absolutePath + "/pose_landmark_full.onnx"
-        net = Dnn.readNetFromONNX(modelPath)
-
+        // Set up MethodChannel for Flutter communication
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "torsodetection")
             .setMethodCallHandler { call, result ->
                 if (call.method == "detectTorso") {

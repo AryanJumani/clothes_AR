@@ -14,17 +14,20 @@ public class torso_detection : MonoBehaviour
     [SerializeField] private GameObject clothingPrefab;
     [SerializeField] private Transform torsoAnchor;
 
-    private Vector3[] torsoKeypoints = new Vector3[8];
+    [Header("Debug")]
+    [SerializeField] private bool showDebugInfo = true;
+
+    private readonly Vector3[] torsoKeypoints = new Vector3[8];
     private Model runtimeModel;
     private IWorker worker;
     private GameObject currentClothing;
-    private RenderTexture rt;
+    private Texture2D processingTexture;
+    private bool isInitialized = false;
+    private float[] preprocessedData;
 
     private void Start()
     {
         InitializeCamera();
-        InitializeModel();
-        InitializeClothing();
     }
 
     private void InitializeCamera()
@@ -35,16 +38,43 @@ public class torso_detection : MonoBehaviour
             Debug.LogError("No camera found");
             return;
         }
-        webCamTexture = new WebCamTexture(devices[0].name, 1280, 720, 30);
+
+        webCamTexture = new WebCamTexture(devices[0].name, 640, 480, 30);
         webCamTexture.Play();
+
+        StartCoroutine(WaitForWebcam());
+    }
+
+    private System.Collections.IEnumerator WaitForWebcam()
+    {
+        while (webCamTexture.width <= 16)
+        {
+            yield return null;
+        }
+
+        Debug.Log($"WebCam initialized with dimensions: {webCamTexture.width}x{webCamTexture.height}");
+        processingTexture = new Texture2D(webCamTexture.width, webCamTexture.height, TextureFormat.RGB24, false);
         displayImage.texture = webCamTexture;
-        rt = new RenderTexture(1280, 720, 0, RenderTextureFormat.ARGB32);
+
+        // Preallocate array for preprocessed data
+        preprocessedData = new float[webCamTexture.width * webCamTexture.height * 3];
+
+        InitializeModel();
+        InitializeClothing();
+
+        isInitialized = true;
     }
 
     private void InitializeModel()
     {
         runtimeModel = ModelLoader.Load(modelAsset);
         worker = WorkerFactory.CreateWorker(WorkerFactory.Type.ComputePrecompiled, runtimeModel);
+
+        if (showDebugInfo)
+        {
+            Debug.Log($"Model inputs: {string.Join(", ", runtimeModel.inputs)}");
+            Debug.Log($"Model outputs: {string.Join(", ", runtimeModel.outputs)}");
+        }
     }
 
     private void InitializeClothing()
@@ -58,7 +88,7 @@ public class torso_detection : MonoBehaviour
 
     private void Update()
     {
-        if (!webCamTexture.isPlaying) return;
+        if (!isInitialized || !webCamTexture.isPlaying) return;
 
         DetectTorso();
 
@@ -70,50 +100,96 @@ public class torso_detection : MonoBehaviour
 
     private void DetectTorso()
     {
-        Graphics.Blit(webCamTexture, rt);
-        using (var inputTensor = new Tensor(rt, channels: 3))
+        try
         {
-            for (int b = 0; b < inputTensor.batch; b++)
+            Color32[] pixels = webCamTexture.GetPixels32();
+
+            // Preprocess the image data
+            PreprocessPixels(pixels);
+
+            // Create tensor from preprocessed data
+            var tensorShape = new TensorShape(1, webCamTexture.height, webCamTexture.width, 3);
+            using (var tensor = new Tensor(tensorShape, preprocessedData))
             {
-                for (int h = 0; h < inputTensor.height; h++)
+                worker.Execute(tensor);
+
+                // Process all outputs
+                foreach (string outputName in runtimeModel.outputs)
                 {
-                    for (int w = 0; w < inputTensor.width; w++)
+                    using (var output = worker.PeekOutput(outputName))
                     {
-                        for (int c = 0; c < inputTensor.channels; c++)
+                        if (showDebugInfo)
                         {
-                            int index = inputTensor.Index(b, h, w, c);
-                            inputTensor[index] = (inputTensor[index] / 255.0f) * 2.0f - 1.0f;
+                            Debug.Log($"Output {outputName} shape: {output.shape}");
+                            Debug.Log($"First few values of {outputName}: {output[0]}, {output[1]}, {output[2]}");
                         }
                     }
                 }
+
+                // Get the main output for keypoints
+                using (var output = worker.PeekOutput(runtimeModel.outputs[0]))
+                {
+                    ProcessKeypointsFromTensor(output);
+                }
             }
-            worker.Execute(inputTensor);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Error processing frame: {e.Message}\nStack trace: {e.StackTrace}");
+        }
+    }
 
-            var output = worker.PeekOutput();
-
-            ProcessKeypointsFromTensor(output);
+    private void PreprocessPixels(Color32[] pixels)
+    {
+        for (int i = 0; i < pixels.Length; i++)
+        {
+            // Convert to float and normalize to [-1, 1]
+            preprocessedData[i * 3] = (pixels[i].r / 255.0f) * 2.0f - 1.0f;     // R
+            preprocessedData[i * 3 + 1] = (pixels[i].g / 255.0f) * 2.0f - 1.0f; // G
+            preprocessedData[i * 3 + 2] = (pixels[i].b / 255.0f) * 2.0f - 1.0f; // B
         }
     }
 
     private void ProcessKeypointsFromTensor(Tensor output)
     {
+        if (showDebugInfo)
+        {
+            Debug.Log($"Processing output tensor with shape: {output.shape}");
+        }
+
+        // Assuming the first output contains keypoint data
         for (int i = 0; i < 8; i++)
         {
             float x = output[i * 3];
             float y = output[i * 3 + 1];
             float confidence = output[i * 3 + 2];
 
+            if (showDebugInfo && i == 0)
+            {
+                Debug.Log($"Keypoint 0 - Raw values - x: {x}, y: {y}, confidence: {confidence}");
+            }
+
+            // Convert to screen coordinates
+            x = (x + 1f) * 0.5f;
+            y = (y + 1f) * 0.5f;
+            confidence = Sigmoid(confidence);
+
+            if (showDebugInfo && i == 0)
+            {
+                Debug.Log($"Keypoint 0 - Processed values - x: {x}, y: {y}, confidence: {confidence}");
+            }
+
             if (confidence > 0.5f)
             {
-                Debug.Log("working?");
                 torsoKeypoints[i] = Camera.main.ViewportToWorldPoint(
                     new Vector3(x, y, Camera.main.nearClipPlane));
             }
-            else
-            {
-                Debug.Log("confidence: " + confidence + " not working ;(");
-            }
         }
+    }
+
+    private float Sigmoid(float x)
+    {
+        return 1f / (1f + Mathf.Exp(-x));
     }
 
     private bool IsTorsoDetected()
@@ -181,5 +257,7 @@ public class torso_detection : MonoBehaviour
         worker?.Dispose();
         if (webCamTexture != null && webCamTexture.isPlaying)
             webCamTexture.Stop();
+        if (processingTexture != null)
+            Destroy(processingTexture);
     }
 }
