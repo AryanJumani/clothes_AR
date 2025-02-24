@@ -33,11 +33,11 @@ def segment_image(image):
     pred_seg = upsampled_logits.argmax(dim=1)[0]
     clothing_mask = pred_seg == 4
     image_np = np.array(image)
-    background_white = np.ones_like(image_np) * 255
-    for c in range(3):
-        background_white[:, :, c] = np.where(clothing_mask, image_np[:, :, c], 255)
-    extracted_clothing_image_white_bg = Image.fromarray(background_white)
-    return extracted_clothing_image_white_bg
+    background_white = np.zeros((image_np.shape[0], image_np.shape[1], 4), dtype=np.uint8)
+    transparent_image[:, :, :3] = image_np[:, :, :3]
+    transparent_image[:, :, 3] = np.where(clothing_mask, 255, 0)
+    extracted_clothing_trans = Image.fromarray(transparent_image, mode="RGBA")
+    return extracted_clothing_trans
 
 url = "https://m.media-amazon.com/images/I/61wZCWANufL._AC_SY879_.jpg"
 original_image = download_image(url)
