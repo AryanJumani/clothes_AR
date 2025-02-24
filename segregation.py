@@ -39,9 +39,9 @@ def segment_image(image):
     extracted_clothing_image_white_bg = Image.fromarray(background_white)
     return extracted_clothing_image_white_bg
 
-#url = "https://m.media-amazon.com/images/I/61qTPaU7dYL._AC_SX679_.jpg"
-#original_image = download_image(url)
-original_image = Image.open("person.jpg")
+url = "https://m.media-amazon.com/images/I/61wZCWANufL._AC_SY879_.jpg"
+original_image = download_image(url)
+#original_image = Image.open("person.jpg")
 if original_image:
     segmented_img = segment_image(original_image)
     segmented_img.save("Resources/Shirts/extracted_image.jpg")
