@@ -3,7 +3,7 @@ import mediapipe as mp
 import numpy as np
 
 # Load t-shirt image with alpha channel
-shirt = cv2.imread("input2.png", cv2.IMREAD_UNCHANGED)
+shirt = cv2.imread("input.png", cv2.IMREAD_UNCHANGED)
 if shirt is None or shirt.shape[2] != 4:
     print("Error: input.png not found or missing alpha channel.", shirt.shape[2])
     exit()
