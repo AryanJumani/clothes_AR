@@ -1,0 +1,17 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+  text-align: center;
+  background: #111;
+  color: #eee;
+}
+
+#fileInput {
+  margin: 1rem;
+}
+
+canvas {
+  display: block;
+  margin: 0 auto;
+  border: 1px solid #444;
+}

@@ -17,7 +17,7 @@ async function setupCamera() {
 /* ---------- 2. Load shirt PNG (RGBA) ---------- */
 async function loadShirt() {
   shirtImg = new Image();
-  shirtImg.src = "assets/shirt.png"; // transparent PNG
+  shirtImg.src = " fgassets/shirt.png"; // transparent PNG
   await new Promise((res) => (shirtImg.onload = res));
 }
 
