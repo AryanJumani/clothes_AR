@@ -1,13 +1,14 @@
 import os
 import shutil
 from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi.responses import Response, JSONResponse
 from PIL import Image
 import numpy as np
 import torch
 import torch.nn.functional as nn
 from transformers import SegformerImageProcessor, AutoModelForSemanticSegmentation
 import uvicorn
+from io import BytesIO
 
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
@@ -50,15 +51,13 @@ async def segment_image(file: UploadFile = File(...)):
         if bbox:
             result = result.crop(bbox)
 
-        # Save final output to assets/web/shirt.png
-        output_path = "assets/web/shirt.png"
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        result.save(output_path)
-
-        return JSONResponse({"status": "success", "path": output_path})
+        # Return bytes
+        buffer = BytesIO()
+        result.save(buffer, format="PNG")
+        return Response(content=buffer.getvalue(), media_type="image/png")
     except Exception as e:
         return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
 
 
-if __name__ == "main":
+if __name__ == "__main__":
     uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)
