@@ -16,9 +16,11 @@ async function setupCamera() {
 
 /* ---------- 2. Load shirt PNG (RGBA) ---------- */
 async function loadShirt() {
-  shirtImg = new Image();
-  shirtImg.src = " fgassets/shirt.png"; // transparent PNG
-  await new Promise((res) => (shirtImg.onload = res));
+  while (!window.shirtImg) {
+      await new Promise(res => setTimeout(res, 50));
+    }
+    shirtImg = window.shirtImg;
+
 }
 
 /* ---------- 3. Pose detector ---------- */
