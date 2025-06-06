@@ -44,7 +44,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/web/
-    - assets/seg/
+    - assets/icon_transparent.png
     - assets/grid.png
 
 flutter_icons:
