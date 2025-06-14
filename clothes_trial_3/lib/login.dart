@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:clothes_trial_3/constants.dart';
 import 'package:clothes_trial_3/register.dart';
+import 'package:clothes_trial_3/upload_photo.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -28,6 +29,12 @@ class _LoginPageState extends State<LoginPage> {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       print("Logged in ${data.toString()}");
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: const Text("Successfully logged in!")));
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => UploadPhoto()));
     } else {
       final data = jsonDecode(response.body);
       print("Failed ${data.toString()}");

@@ -28,41 +28,106 @@ class _UploadPhotoState extends State<UploadPhoto> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Pick an Image')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _imageFile != null
-                ? Image.file(_imageFile!, height: 300)
-                : Text('No image selected'),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => _pickImage(ImageSource.gallery),
-              child: Text('Pick from Gallery'),
-            ),
-            IconButton(
-              onPressed: () {
-                if (_imageFile != null) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder:
-                          (context) => Segregator(imagePath: _imageFile!.path),
+      backgroundColor: background,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Container(
+              padding: const EdgeInsets.all(50),
+              decoration: BoxDecoration(
+                color: accent,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: black.withOpacity(0.1),
+                    blurRadius: 12,
+                    offset: Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _imageFile != null
+                      ? ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.file(_imageFile!, height: 250),
+                      )
+                      : Column(
+                        children: [
+                          Icon(Icons.image, size: 100, color: aqua),
+                          SizedBox(height: 10),
+                          Text(
+                            'No image selected',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: black.withOpacity(0.6),
+                            ),
+                          ),
+                        ],
+                      ),
+                  SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: () => _pickImage(ImageSource.gallery),
+                    icon: Icon(Icons.photo, color: black),
+                    label: Text('Choose Image', style: TextStyle(color: black)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: salmon,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                     ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Please pick an image first')),
-                  );
-                }
-              },
-              icon: Icon(Icons.arrow_circle_right, size: 100, color: free),
-              color: salmon,
+                  ),
+                  SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      if (_imageFile != null) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder:
+                                (context) =>
+                                    Segregator(imagePath: _imageFile!.path),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Please pick an image first'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                    },
+                    icon: Icon(Icons.arrow_forward_ios, color: background),
+                    label: Text(
+                      'Continue',
+                      style: TextStyle(
+                        color: background,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: aqua,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
-      backgroundColor: background,
     );
   }
 }

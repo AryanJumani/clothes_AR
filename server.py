@@ -21,7 +21,7 @@ db_pwd = secret.db_pwd
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 app = FastAPI()
-engine = create_engine("mysql+pymysql://root:{db_pwd}@localhost/trion")
+engine = create_engine("mysql+pymysql://root:" + db_pwd + "@localhost/trion")
 
 processor = SegformerImageProcessor.from_pretrained("mattmdjaga/segformer_b2_clothes")
 model = AutoModelForSemanticSegmentation.from_pretrained("mattmdjaga/segformer_b2_clothes")

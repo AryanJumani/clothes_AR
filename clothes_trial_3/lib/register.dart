@@ -28,6 +28,10 @@ class _RegisterPageState extends State<RegisterPage> {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       print("Registered: ${data.toString()}");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: const Text("Registered user! Please log in!")),
+      );
+      Navigator.of(context).pop();
     } else {
       final data = jsonDecode(response.body);
       print("Failed: ${data.toString()}");
