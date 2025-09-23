@@ -1,9 +1,0 @@
-DROP DATABASE IF EXISTS `trion`;
-CREATE DATABASE `trion`;
-USE `trion`;
-
-CREATE TABLE User (
-    email VARCHAR(255) PRIMARY KEY,
-    pwd_hash VARCHAR(255) NOT NULL
-);
-
