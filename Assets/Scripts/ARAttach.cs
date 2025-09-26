@@ -49,36 +49,57 @@ public class ARAttach : MonoBehaviour
         TshirtInstance = Instantiate(tshirtPrefab);
         isSpawned = true;
 
+        var bounds = new Bounds();
+        bounds.center = TshirtInstance.transform.Find("LeftShoulder").localPosition;
+        bounds.Encapsulate(TshirtInstance.transform.Find("RightShoulder").localPosition);
+        bounds.Encapsulate(TshirtInstance.transform.Find("LeftHip").localPosition);
+        bounds.Encapsulate(TshirtInstance.transform.Find("RightHip").localPosition);
+
+        originalShoulderWidth = bounds.size.x;
+        originalTorsoHeight = bounds.size.y;
+
+        // The anchor point is the center of the shoulder line in the model's local space
         Vector3 leftShoulderModelPos = TshirtInstance.transform.Find("LeftShoulder").localPosition;
         Vector3 rightShoulderModelPos = TshirtInstance.transform.Find("RightShoulder").localPosition;
-        Vector3 leftHipModelPos = TshirtInstance.transform.Find("LeftHip").localPosition;
-        originalShoulderWidth = Vector3.Distance(leftShoulderModelPos, rightShoulderModelPos);
-        originalTorsoHeight = Vector3.Distance(leftShoulderModelPos, leftHipModelPos);
         tshirtLocalShoulderAnchorPoint = (leftShoulderModelPos + rightShoulderModelPos) / 2;
-        Debug.LogWarning("tshirt placed");
+
+        Debug.Log("T-shirt initialized and placed.");
+
     }
 
     private void UpdateTshirtTransform()
     {
-        Vector3 lsh = pointListAnnotation.GetChild(11).position;
-        Vector3 rsh = pointListAnnotation.GetChild(12).position;
-        Vector3 lhip = pointListAnnotation.GetChild(23).position;
-        Vector3 rhip = pointListAnnotation.GetChild(24).position;
+        // Get the world positions of the 4 key landmarks
+        Vector3 lsh = pointListAnnotation.GetChild(11).position; // Left Shoulder
+        Vector3 rsh = pointListAnnotation.GetChild(12).position; // Right Shoulder
+        Vector3 lhip = pointListAnnotation.GetChild(23).position; // Left Hip
+        Vector3 rhip = pointListAnnotation.GetChild(24).position; // Right Hip
 
-        // --- Your Original Position, Rotation, and Scaling Logic ---
-        Vector3 topCen = (lsh + rsh) / 2;
-        Vector3 offset = Vector3.Scale(TshirtInstance.transform.localScale, tshirtLocalShoulderAnchorPoint);
-        Vector3 targetPos = new Vector3(topCen.x - offset.x, topCen.y - offset.y, topCen.z - offset.z - 10);
-        TshirtInstance.transform.position = Vector3.Lerp(TshirtInstance.transform.position, targetPos, followSpeed * Time.deltaTime);
+        // --- 1. Robust 3D Rotation (No changes here) ---
+        Vector3 shoulderCenter = (lsh + rsh) / 2;
+        Vector3 hipCenter = (lhip + rhip) / 2;
+        Vector3 torsoUp = (shoulderCenter - hipCenter).normalized;
+        Vector3 torsoRight = (rsh - lsh).normalized;
+        Vector3 torsoForward = Vector3.Cross(torsoUp, torsoRight).normalized;
+        Quaternion targetRot = Quaternion.LookRotation(torsoForward, torsoUp);
 
-        Vector3 shoulderLine = rsh - lsh;
-        float angle = Mathf.Atan2(shoulderLine.y, shoulderLine.x) * Mathf.Rad2Deg;
-        Quaternion targetRot = Quaternion.Euler(0, 0, angle - 180);
-        TshirtInstance.transform.rotation = Quaternion.Slerp(TshirtInstance.transform.rotation, targetRot, followSpeed * Time.deltaTime);
+        // --- 2. Stable Uniform Scale (No changes here) ---
+        float detectedTorsoHeight = Vector3.Distance(shoulderCenter, hipCenter);
+        float scaleFactor = detectedTorsoHeight / originalTorsoHeight;
+        Vector3 targetScale = Vector3.one * scaleFactor;
 
-        float detectedWidth = Vector3.Distance(lsh, rsh);
-        float detectedHeight = Vector3.Distance(lsh, lhip);
-        Vector3 targetScale = new Vector3(detectedWidth / originalShoulderWidth, detectedHeight / originalTorsoHeight, 0.5f);
-        TshirtInstance.transform.localScale = Vector3.Lerp(TshirtInstance.transform.localScale, targetScale, followSpeed * Time.deltaTime);
+        // --- 3. POSITIONING FIX ---
+        // The previous logic used the center of the whole torso.
+        // This new logic directly aligns the T-shirt's shoulder anchor
+        // with the detected center of your shoulders. This should fix the "too down" issue.
+        Vector3 scaledAndRotatedAnchorOffset = targetRot * (tshirtLocalShoulderAnchorPoint * scaleFactor);
+        Vector3 targetPos = shoulderCenter - scaledAndRotatedAnchorOffset;
+
+        // --- 4. Apply Transformations with Smoothing ---
+        float speed = followSpeed * Time.deltaTime;
+        TshirtInstance.transform.position = Vector3.Lerp(TshirtInstance.transform.position, targetPos, speed);
+        TshirtInstance.transform.rotation = Quaternion.Slerp(TshirtInstance.transform.rotation, targetRot, speed);
+        TshirtInstance.transform.localScale = Vector3.Lerp(TshirtInstance.transform.localScale, targetScale, speed);
     }
+
 }
