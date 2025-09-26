@@ -11,8 +11,9 @@ This is a Unity project that uses Google's MediaPipe framework through homuler's
 
 This first version establishes the core try-on functionality.
 
-Example of version 1 on phone:
+Example of version 1.0.0 on phone:
 ![Trion Demo v1.0.0](./version_1.gif)
+Note: will update video for major updates
 
 ## Technology Stack
 
