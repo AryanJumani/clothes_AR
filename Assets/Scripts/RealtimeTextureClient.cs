@@ -30,14 +30,14 @@ public class RealtimeTextureController : MonoBehaviour
     {
         // This block is a good practice for ensuring the plugin requests
         // the necessary permissions on modern Android versions.
-#if UNITY_ANDROID
+#if UNITY_ANDROID && !UNITY_EDITOR
         using (AndroidJavaClass ajc = new AndroidJavaClass("com.yasirkula.unity.NativeGalleryMediaPickerFragment"))
         {
             ajc.SetStatic<bool>("GrantPersistableUriPermission", true);
         }
 #endif
 
-#if UNITY_ANDROID
+#if UNITY_ANDROID && !UNITY_EDITOR
         serverUrl = $"http://{serverIpAddress}:5000/process_image";
 #else
         serverUrl = "http://127.0.0.1:5000/process_image";
@@ -46,7 +46,7 @@ public class RealtimeTextureController : MonoBehaviour
 
     public void OnUploadButtonClick()
     {
-#if UNITY_ANDROID
+#if UNITY_ANDROID && ! UNITY_EDITOR
         RequestPermissionAndPickImage();
 // #elif UNITY_STANDALONE || UNITY_EDITOR
 //         var extensions = new[] { new ExtensionFilter("Image Files", "png", "jpg") };
@@ -57,6 +57,18 @@ public class RealtimeTextureController : MonoBehaviour
 //                 StartCoroutine(SendImageToServer(fileBytes));
 //             }
 //         });
+#elif UNITY_EDITOR
+        string imagePath = "/Users/ajgamergrenade/projects_and_trials/clothes_AR/trial2.png";
+        Debug.Log($"EDITOR MODE: Attempting to read file from hardcoded path: {imagePath}");
+        try
+        {
+            byte[] fileBytes = File.ReadAllBytes(imagePath);
+            StartCoroutine(SendImageToServer(fileBytes));
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"FAILED TO READ FILE. Check the path is correct. Error: {e.Message}");
+        }
 #endif
     }
 

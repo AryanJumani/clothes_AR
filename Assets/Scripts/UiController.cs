@@ -1,28 +1,23 @@
 using UnityEngine;
 using UnityEngine.UI; // Required if you add animations with CanvasGroup
+using Mediapipe.Unity.Sample.PoseLandmarkDetection;
+using Mediapipe.Unity;
+using Mediapipe.Unity.Sample;
+using System.Collections;
 
 public class UiController : MonoBehaviour
 {
-    [Header("Canvases / UI Panels")]
-    [Tooltip("The GameObject containing your home screen UI.")]
     public GameObject homeScreenCanvas;
 
-    [Tooltip("The GameObject containing your main try-on UI (the bottom bar, etc.).")]
     public GameObject mainTryOnCanvas;
 
-    [Header("Core App Components")]
-    [Tooltip("The main GameObject that runs the MediaPipe Solution and starts the camera.")]
-    public GameObject mediaPipeSolutionObject;
+    public PoseLandmarkerRunner mediaPipeSolutionObject;
 
     void Start()
     {
-        // 1. Set the initial state when the app launches.
-        // Show the home screen.
         homeScreenCanvas.SetActive(true);
-
-        // Make sure the main UI and the camera are turned OFF.
         mainTryOnCanvas.SetActive(false);
-        mediaPipeSolutionObject.SetActive(false);
+        mediaPipeSolutionObject.enabled = false;
     }
 
     /// <summary>
@@ -37,12 +32,47 @@ public class UiController : MonoBehaviour
             return;
         }
 
-        // 2. Transition from the home screen to the main app.
-        // Hide the home screen.
+        mainTryOnCanvas.SetActive(true);
         homeScreenCanvas.SetActive(false);
 
-        // Activate the main UI and the MediaPipe camera/tracking system.
-        mainTryOnCanvas.SetActive(true);
-        mediaPipeSolutionObject.SetActive(true);
+
+        mediaPipeSolutionObject.enabled = true;
+        StartCoroutine(SelectFront());
+    }
+
+    private IEnumerator SelectFront()
+    {
+        ImageSource imageSource = ImageSourceProvider.ImageSource;
+        while (imageSource == null)
+        {
+            Debug.LogWarning("Waiting for ImageSource to be ready...");
+            yield return null; // Wait for the next frame
+            imageSource = ImageSourceProvider.ImageSource; // Try to get it again
+        }
+
+        var cameraDevices = imageSource.sourceCandidateNames;
+
+        if (cameraDevices == null || cameraDevices.Length == 0)
+        {
+            Debug.LogError("No camera devices found!");
+            yield break;
+        }
+        WebCamDevice[] devices = WebCamTexture.devices;
+
+        if (devices.Length == 0)
+        {
+            Debug.LogError("No camera devices found!");
+            yield break;
+        }
+        for (int i = 0; i < devices.Length; i++)
+        {
+            if (devices[i].isFrontFacing)
+            {
+                Debug.Log($"Front-facing camera found: {devices[i].name} at index {i}");
+                imageSource.SelectSource(i);
+            }
+        }
+
+        Debug.LogWarning("Could not find a front-facing camera. Using default camera.");
     }
 }

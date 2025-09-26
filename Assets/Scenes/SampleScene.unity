@@ -279,6 +279,10 @@ PrefabInstance:
       propertyPath: _modalPanel
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 1591117366850292040, guid: 7e2953cf4756c42c399e14873ca39774, type: 3}
+      propertyPath: m_Camera
+      value: 
+      objectReference: {fileID: 963194227}
     - target: {fileID: 1591117366850292041, guid: 7e2953cf4756c42c399e14873ca39774, type: 3}
       propertyPath: m_ReferenceResolution.x
       value: 1080
@@ -389,11 +393,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4472132580316503415, guid: 7e2953cf4756c42c399e14873ca39774, type: 3}
       propertyPath: _leftLandmarkColor.a
-      value: 0
+      value: 0.56078434
       objectReference: {fileID: 0}
     - target: {fileID: 4472132580316503415, guid: 7e2953cf4756c42c399e14873ca39774, type: 3}
       propertyPath: _rightLandmarkColor.a
-      value: 0
+      value: 0.50980395
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
@@ -585,6 +589,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 274855155}
     - target: {fileID: 8311617092168726395, guid: 2d96c4597480d4f34a2fb2bdb9c45a4b, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8311617092168726395, guid: 2d96c4597480d4f34a2fb2bdb9c45a4b, type: 3}
       propertyPath: _poseLandmarkerResultAnnotationController
       value: 
       objectReference: {fileID: 274855154}
@@ -615,6 +623,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tshirtPrefab: {fileID: 5190965074752851656, guid: 56e352b5777ea478aac74635b4121b9c, type: 3}
   followSpeed: 10
+--- !u!114 &917654007 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8311617092168726395, guid: 2d96c4597480d4f34a2fb2bdb9c45a4b, type: 3}
+  m_PrefabInstance: {fileID: 917654004}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 917654005}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70620c801523bd3daafb31ee271ecac9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &938111808
 GameObject:
   m_ObjectHideFlags: 0
@@ -1125,7 +1144,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   homeScreenCanvas: {fileID: 1377097241}
   mainTryOnCanvas: {fileID: 274855156}
-  mediaPipeSolutionObject: {fileID: 917654005}
+  mediaPipeSolutionObject: {fileID: 917654007}
 --- !u!114 &1485726879
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -21,7 +21,16 @@ public class ARAttach : MonoBehaviour
         {
             GameObject go = GameObject.Find("Point List Annotation");
             if (go != null) { pointListAnnotation = go.transform; }
-            else { return; }
+            else
+            {
+                if (TshirtInstance != null)
+                {
+                    Destroy(TshirtInstance);
+                    isSpawned = false;
+                }
+
+                return;
+            }
         }
 
         if (!isSpawned)
@@ -46,6 +55,7 @@ public class ARAttach : MonoBehaviour
         originalShoulderWidth = Vector3.Distance(leftShoulderModelPos, rightShoulderModelPos);
         originalTorsoHeight = Vector3.Distance(leftShoulderModelPos, leftHipModelPos);
         tshirtLocalShoulderAnchorPoint = (leftShoulderModelPos + rightShoulderModelPos) / 2;
+        Debug.LogWarning("tshirt placed");
     }
 
     private void UpdateTshirtTransform()
