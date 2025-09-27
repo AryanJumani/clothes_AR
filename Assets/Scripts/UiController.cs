@@ -5,6 +5,8 @@ using Mediapipe.Unity;
 using Mediapipe.Unity.Sample;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Networking;
+using TMPro;
 
 public class UiController : MonoBehaviour
 {
@@ -18,6 +20,12 @@ public class UiController : MonoBehaviour
     public RectTransform initialPanel;
     private bool isAnimating = false;
 
+    [Header("Login/Register Input fields")]
+    public InputField loginUsername;
+    public InputField loginPassword;
+    public InputField regUsername;
+    public InputField regPassword;
+    public InputField regConfirm;
 
     void Start()
     {
@@ -105,14 +113,49 @@ public class UiController : MonoBehaviour
             return;
         }
         RectTransform panelToPop = navigationStack.Pop();
-        float parentWidth = ((RectTransform)panelToPop.parent).rect.width;
-        panelToPop.offsetMin = new Vector2(-parentWidth, panelToPop.offsetMin.y);
-        panelToPop.offsetMax = new Vector2(-parentWidth, panelToPop.offsetMax.y);
-        panelToPop.gameObject.SetActive(false);
+        StartCoroutine(animatePop(panelToPop));
         RectTransform newTopPanel = navigationStack.Peek();
         newTopPanel.gameObject.SetActive(true);
     }
     private float duration = 0.4f;
+    private IEnumerator animatePop(RectTransform popPanel)
+    {
+        Vector3 startScale = popPanel.localScale;
+        Vector3 endScale = new Vector3(2, 2, 2);
+        TMP_Text[] children = popPanel.transform.GetComponentsInChildren<TMP_Text>();
+        Image pop = popPanel.GetComponent<Image>();
+        Color startColor = pop.color;
+        Color endpopC = new Color(startColor.r, startColor.g, startColor.b, 0);
+        Color endColor = new Color(1, 1, 1, 0);
+
+        isAnimating = true;
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            float easedT = 1 - Mathf.Pow(1 - t, 3);
+
+            popPanel.localScale = Vector3.LerpUnclamped(startScale, endScale, easedT);
+            pop.color = Color.LerpUnclamped(startColor, endpopC, easedT);
+            foreach (TMP_Text child in children)
+            {
+                child.color = Color.LerpUnclamped(Color.white, endColor, easedT);
+            }
+            yield return null;
+        }
+        popPanel.gameObject.SetActive(false);
+        popPanel.localScale = startScale;
+        foreach (TMP_Text child in children)
+        {
+            child.color = Color.white;
+        }
+        pop.color = startColor;
+        float parentWidth = ((RectTransform)popPanel.parent).rect.width;
+        popPanel.offsetMin = new Vector2(-parentWidth, popPanel.offsetMin.y);
+        popPanel.offsetMax = new Vector2(-parentWidth, popPanel.offsetMax.y);
+        isAnimating = false;
+    }
     private IEnumerator SlideIn(RectTransform panelToShow, RectTransform panelToHide)
     {
 
@@ -154,5 +197,74 @@ public class UiController : MonoBehaviour
             panelToHide.gameObject.SetActive(false);
         }
         isAnimating = false;
+    }
+    public void Login()
+    {
+        StartCoroutine(LoginCor("http://127.0.0.1:5000/login"));
+    }
+    public void Register()
+    {
+        StartCoroutine(RegisterCor("http://127.0.0.1:5000/register"));
+    }
+    private IEnumerator LoginCor(string url)
+    {
+        User user = new User();
+        user.username = loginUsername.text;
+        user.password = loginPassword.text;
+        string json = JsonUtility.ToJson(user);
+        using (UnityWebRequest request = new UnityWebRequest(url, "POST"))
+        {
+            byte[] raw = System.Text.Encoding.UTF8.GetBytes(json);
+            request.uploadHandler = new UploadHandlerRaw(raw);
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
+            yield return request.SendWebRequest();
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                Debug.Log("Success...");
+            }
+            else
+            {
+                Debug.LogError("Error logging in");
+            }
+        }
+    }
+    private IEnumerator RegisterCor(string url)
+    {
+        if (!regPassword.text.Equals(regConfirm.text))
+        {
+            Debug.Log("Passwords dont match");
+            yield break;
+        }
+        User user = new User();
+        user.username = regUsername.text;
+        user.password = regPassword.text;
+        string json = JsonUtility.ToJson(user);
+        using (UnityWebRequest request = new UnityWebRequest(url, "POST"))
+        {
+            byte[] raw = System.Text.Encoding.UTF8.GetBytes(json);
+            request.uploadHandler = new UploadHandlerRaw(raw);
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
+            yield return request.SendWebRequest();
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                Debug.Log("Success...");
+            }
+            else
+            {
+                Debug.LogError("Error registering user");
+            }
+        }
+    }
+    public void ShowSnackbar(string text, Transform parent)
+    {
+        GameObject snackbar = new GameObject("SnackbarPanel");
+        snackbar.transform.SetParent(parent, false);
+        Image panelImage = snackbar.AddComponent<Image>();
+        panelImage.color = new Color(30f/225f, 30f/225f, 30f/225f);
+        RectTransform panelRect = snackbar.GetComponent<RectTransform>();
+        panelRect.sizeDelta = new Vector2(parent.GetComponent<RectTransform>().rect.width - (20f * 2), 100f);
+        panelRect.anchoredPosition = new Vector2(0, 75f);
     }
 }
