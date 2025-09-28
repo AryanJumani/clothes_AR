@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+# [1.2.0] - 2025-09-27
+### Added
+
+-   **Added recording features**
+-   **Basic login and registration functionalities. Will need to change and make more advanced**
+
 # [1.1.0] - 2025-09-26
 ### Added
 
