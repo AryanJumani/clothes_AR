@@ -21,18 +21,20 @@ public class UiController : MonoBehaviour
     private bool isAnimating = false;
 
     [Header("Login/Register Input fields")]
-    public InputField loginUsername;
-    public InputField loginPassword;
-    public InputField regUsername;
-    public InputField regPassword;
-    public InputField regConfirm;
+    public TMP_InputField loginUsername;
+    public TMP_InputField loginPassword;
+    public TMP_InputField regUsername;
+    public TMP_InputField regPassword;
+    public TMP_InputField regConfirm;
+    public RectTransform loginPanel;
+    public RectTransform registerPanel;
 
     void Start()
     {
         homeScreenCanvas.SetActive(true);
         mainTryOnCanvas.SetActive(false);
         mediaPipeSolutionObject.enabled = false;
-        navigationStack.Push(initialPanel);
+        navigationStack.Push(registerPanel);
     }
 
     /// <summary>
@@ -222,10 +224,13 @@ public class UiController : MonoBehaviour
             if (request.result == UnityWebRequest.Result.Success)
             {
                 Debug.Log("Success...");
+                ShowSnackbar("Login Success", homeScreenCanvas.transform);
+                pushUI(initialPanel);
             }
             else
             {
                 Debug.LogError("Error logging in");
+                ShowSnackbar("Error", homeScreenCanvas.transform);
             }
         }
     }
@@ -234,6 +239,7 @@ public class UiController : MonoBehaviour
         if (!regPassword.text.Equals(regConfirm.text))
         {
             Debug.Log("Passwords dont match");
+            ShowSnackbar("Passwords dont match", homeScreenCanvas.transform);
             yield break;
         }
         User user = new User();
@@ -250,21 +256,49 @@ public class UiController : MonoBehaviour
             if (request.result == UnityWebRequest.Result.Success)
             {
                 Debug.Log("Success...");
+                ShowSnackbar("Registration Success", homeScreenCanvas.transform);
+                pushUI(loginPanel);
             }
             else
             {
                 Debug.LogError("Error registering user");
+                ShowSnackbar("Error registering user", homeScreenCanvas.transform);
             }
         }
     }
     public void ShowSnackbar(string text, Transform parent)
     {
-        GameObject snackbar = new GameObject("SnackbarPanel");
-        snackbar.transform.SetParent(parent, false);
-        Image panelImage = snackbar.AddComponent<Image>();
-        panelImage.color = new Color(30f/225f, 30f/225f, 30f/225f);
-        RectTransform panelRect = snackbar.GetComponent<RectTransform>();
+        GameObject snackbarObject = new GameObject("Snackbar (Temporary)");
+        snackbarObject.transform.SetParent(parent.transform, false);
+
+        Image panelImage = snackbarObject.AddComponent<Image>();
+        panelImage.color = new Color(30f / 225f, 30f / 225f, 30f / 225f);
+
+        RectTransform panelRect = snackbarObject.GetComponent<RectTransform>();
         panelRect.sizeDelta = new Vector2(parent.GetComponent<RectTransform>().rect.width - (20f * 2), 100f);
         panelRect.anchoredPosition = new Vector2(0, 75f);
+        panelRect.anchorMin = new Vector2(0.5f, 0);
+        panelRect.anchorMax = new Vector2(0.5f, 0);
+        panelRect.pivot = new Vector2(0.5f, 0);
+        GameObject textObject = new GameObject("SnackbarText");
+        textObject.transform.SetParent(snackbarObject.transform, false);
+
+        TextMeshProUGUI snackbarText = textObject.AddComponent<TextMeshProUGUI>();
+        snackbarText.text = text;
+        snackbarText.color = Color.white;
+        snackbarText.fontSize = 30f;
+        snackbarText.alignment = TextAlignmentOptions.Center;
+
+        RectTransform textRect = textObject.GetComponent<RectTransform>();
+        textRect.anchorMin = Vector2.zero; // Stretch to fill parent
+        textRect.anchorMax = Vector2.one;
+        textRect.sizeDelta = new Vector2(-20, 0); // Add some horizontal padding
+        textRect.anchoredPosition = Vector2.zero;
+        StartCoroutine(stopSnack(snackbarObject));
+    }
+    private IEnumerator stopSnack(GameObject objectToDestroy)
+    {
+        yield return new WaitForSeconds(1);
+        Destroy(objectToDestroy);
     }
 }

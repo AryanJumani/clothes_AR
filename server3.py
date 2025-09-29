@@ -11,10 +11,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 
-with app.app_context():
-    db.create_all()
-
-
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -27,6 +23,11 @@ class User(db.Model):
 
     def check_password(self, password):
         return bcrypt.check_password_hash(self.password_hash, password)
+
+
+with app.app_context():
+    db.create_all()
+
 
 
 

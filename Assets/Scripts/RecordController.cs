@@ -19,13 +19,13 @@ public class RecordController : MonoBehaviour
         {
             androidRecorder = unityClass.GetStatic<AndroidJavaObject>("currentActivity");
 
-            androidRecorder.Call("setUpSaveFolder", "MyGameRecordings"); 
+            androidRecorder.Call("setUpSaveFolder", "MyGameRecordings");
 
             int width = Screen.width;
             int height = Screen.height;
             int bitrate = 3000 * 1000;
             int fps = 30;
-            bool audioEnable = false; 
+            bool audioEnable = false;
 
             androidRecorder.Call("setupVideo", width, height, bitrate, fps, audioEnable, "H264");
         }
