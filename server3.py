@@ -4,8 +4,12 @@ from flask_bcrypt import Bcrypt
 import cv2
 import numpy as np
 import base64
+from flask_jwt_extended import create_access_token, JWTManager
+import os
 
 app = Flask(__name__)
+app.config['JWT_SECRET_KEY'] = os.environ.get("JWT_KEY", "YOUR_SECRET_KEY")
+jwt = JWTManager(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -198,7 +202,8 @@ def login():
         return jsonify({"msg": "Username and password are required"}), 400
     user = User.query.filter_by(username=username).first()
     if user and user.check_password(password):
-        return jsonify({"msg": f"Login successful for user '{username}'"}), 200
+        access_token = create_access_token(identity=username)
+        return jsonify(access_token=access_token), 200
     else:
         return jsonify({"msg": "Invalid username or password"}), 401
 

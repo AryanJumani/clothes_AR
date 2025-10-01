@@ -29,12 +29,27 @@ public class UiController : MonoBehaviour
     public RectTransform loginPanel;
     public RectTransform registerPanel;
 
-    void Start()
+    void Awake()
     {
-        homeScreenCanvas.SetActive(true);
-        mainTryOnCanvas.SetActive(false);
-        mediaPipeSolutionObject.enabled = false;
-        navigationStack.Push(registerPanel);
+        string jwtToken = PlayerPrefs.GetString("jwtToken", "");
+        if (!string.IsNullOrEmpty(jwtToken))
+        {
+            Debug.Log("Auto-login with JWT token: " + jwtToken);
+            homeScreenCanvas.SetActive(true);
+            mainTryOnCanvas.SetActive(false);
+            mediaPipeSolutionObject.enabled = false;
+            navigationStack.Push(initialPanel);
+            initialPanel.offsetMin = Vector2.zero;
+            initialPanel.offsetMax = Vector2.zero;
+        }
+        else
+        {
+            Debug.Log("Register panel showing. No token found");
+            homeScreenCanvas.SetActive(true);
+            mainTryOnCanvas.SetActive(false);
+            mediaPipeSolutionObject.enabled = false;
+            navigationStack.Push(registerPanel);
+        }
     }
 
     /// <summary>
@@ -224,6 +239,21 @@ public class UiController : MonoBehaviour
             if (request.result == UnityWebRequest.Result.Success)
             {
                 Debug.Log("Success...");
+                string jsonResult = request.downloadHandler.text;
+                string accesstoken = "";
+                try
+                {
+                    var resultData = JsonUtility.FromJson<AccessTokenResponse>(jsonResult);
+                    accesstoken = resultData.access_token;
+                    PlayerPrefs.SetString("jwtToken", accesstoken);
+                    PlayerPrefs.Save();
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError("Could not parse access token from server response: " + e.Message);
+                    ShowSnackbar("Error parsing server response", homeScreenCanvas.transform);
+                    yield break;
+                }
                 ShowSnackbar("Login Success", homeScreenCanvas.transform);
                 pushUI(initialPanel);
             }
@@ -300,5 +330,15 @@ public class UiController : MonoBehaviour
     {
         yield return new WaitForSeconds(1);
         Destroy(objectToDestroy);
+    }
+
+    public void Logout()
+    {
+        PlayerPrefs.DeleteKey("jwtToken");
+        PlayerPrefs.Save();
+        navigationStack.Clear();
+        navigationStack.Push(loginPanel);
+        pushUI(loginPanel);
+        ShowSnackbar("Logout Successful, please log back in", mainTryOnCanvas.transform);
     }
 }

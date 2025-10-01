@@ -3,6 +3,8 @@ using UnityEngine.Events;
 
 public class RecordController : MonoBehaviour
 {
+    public GameObject recordBtn;
+    public GameObject stopBtn;
     private bool isRecording = false;
 
     public static UnityAction onAllowCallback;
@@ -29,6 +31,8 @@ public class RecordController : MonoBehaviour
 
             androidRecorder.Call("setupVideo", width, height, bitrate, fps, audioEnable, "H264");
         }
+        recordBtn.SetActive(true);
+        stopBtn.SetActive(false);
     }
     public void ToggleRecording()
     {
@@ -60,11 +64,11 @@ public class RecordController : MonoBehaviour
         {
             case "start_record":
                 isRecording = true;
-                // TODO: change icon to stop icon
+                stopBtn.SetActive(true);
                 break;
             case "stop_record":
                 isRecording = false;
-                // TODO: change back to normal
+                recordBtn.SetActive(true);
                 break;
             case "init_record_error":
                 Debug.LogError("Recorder failed to initialize!");
