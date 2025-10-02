@@ -52,9 +52,9 @@ public class ARAttach : MonoBehaviour
         TshirtInstance = Instantiate(tshirtPrefab);
         isSpawned = true;
 
-        spineBone = TshirtInstance.transform.Find("Spine");
-        leftUpperArmBone = TshirtInstance.transform.Find("Arm_L");
-        rightUpperArmBone = TshirtInstance.transform.Find("Arm_R");
+        spineBone = TshirtInstance.transform.Find("bones/Armature/Bone/Spine");
+        leftUpperArmBone = TshirtInstance.transform.Find("bones/Armature/Bone/Spine/Shoulder_L/Arm_L");
+        rightUpperArmBone = TshirtInstance.transform.Find("bones/Armature/Bone/Spine/Shoulder_R/Arm_R");
         var bounds = new Bounds();
         bounds.center = TshirtInstance.transform.Find("LeftShoulder").localPosition;
         bounds.Encapsulate(TshirtInstance.transform.Find("RightShoulder").localPosition);
@@ -99,26 +99,20 @@ public class ARAttach : MonoBehaviour
         TshirtInstance.transform.position = Vector3.Lerp(TshirtInstance.transform.position, targetPos, speed);
         TshirtInstance.transform.rotation = Quaternion.Slerp(TshirtInstance.transform.rotation, targetRot, speed);
         TshirtInstance.transform.localScale = Vector3.Lerp(TshirtInstance.transform.localScale, targetScale, speed);
+        /*if (leftUpperArmBone != null)
+        {
+            Vector3 leftArmDir = (lel - lsh).normalized;
+            Quaternion leftArmRot = Quaternion.FromToRotation(Vector3.left, leftArmDir);
+            Quaternion finalLeftArmRotation = targetRot * leftArmRot;
 
-        if (spineBone != null)
-        {
-            Vector3 spineDir = shoulderCenter - hipCenter;
-            Quaternion spineRot = Quaternion.LookRotation(spineDir, torsoRight);
-            spineBone.rotation = Quaternion.Slerp(spineBone.rotation, spineRot, speed);
-        }
-        if (leftUpperArmBone != null)
-        {
-            Vector3 leftArmDir = lel - lsh;
-            Quaternion leftArmRot = Quaternion.LookRotation(leftArmDir, torsoUp);
-            leftUpperArmBone.rotation = Quaternion.Slerp(leftUpperArmBone.rotation, leftArmRot, speed);
+            leftUpperArmBone.rotation = Quaternion.Slerp(leftUpperArmBone.rotation, finalLeftArmRotation, speed);
         }
         if (rightUpperArmBone != null)
         {
-            Vector3 rightArmDir = rel - rsh;
-            Quaternion rightArmRot = Quaternion.LookRotation(rightArmDir, torsoUp);
-            rightUpperArmBone.rotation = Quaternion.Slerp(rightUpperArmBone.rotation, rightArmRot, speed);
-        }
-
+            Vector3 rightArmDir = (rel - rsh).normalized;
+            Quaternion rightArmRot = Quaternion.FromToRotation(Vector3.right, rightArmDir);
+            Quaternion finalRightRot = targetRot * rightArmRot;
+            rightUpperArmBone.rotation = Quaternion.Slerp(rightUpperArmBone.rotation, finalRightRot, speed);
+        }*/
     }
-
 }

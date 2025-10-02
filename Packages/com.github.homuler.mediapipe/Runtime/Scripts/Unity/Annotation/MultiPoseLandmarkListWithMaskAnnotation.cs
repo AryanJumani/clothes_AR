@@ -18,8 +18,8 @@ namespace Mediapipe.Unity
 
   public sealed class MultiPoseLandmarkListWithMaskAnnotation : ListAnnotation<PoseLandmarkListWithMaskAnnotation>
   {
-    [SerializeField] private Color _leftLandmarkColor = Color.green;
-    [SerializeField] private Color _rightLandmarkColor = Color.green;
+    private Color _leftLandmarkColor = new Color(0, 0, 0, 0);
+    private Color _rightLandmarkColor = new Color(0, 0, 0, 0);
     [SerializeField] private float _landmarkRadius = 15.0f;
     [SerializeField] private Color _connectionColor = Color.white;
     [SerializeField, Range(0, 1)] private float _connectionWidth = 1.0f;

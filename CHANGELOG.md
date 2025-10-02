@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+# [1.2.3] - 2025-10-02
+### Added
+
+-   **Recording debugging with stop button**
+
+# [1.2.2] - 2025-09-30
+### Added
+
+-   **JWT Token added for login**
+-   **Playerprefs for remembering login**
+
 # [1.2.1] - 2025-09-28
 ### Added
 

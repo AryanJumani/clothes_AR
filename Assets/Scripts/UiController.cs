@@ -29,6 +29,19 @@ public class UiController : MonoBehaviour
     public RectTransform loginPanel;
     public RectTransform registerPanel;
 
+    private void stackclear(RectTransform exception)
+    {
+        bool done = false;
+        for (int i = 0; i < navigationStack.Count; i++)
+        {
+            RectTransform x = navigationStack.Pop();
+            if (done == false && !x.Equals(exception))
+            {
+                done = true;
+                x.gameObject.SetActive(false);
+            }
+        }
+    }
     void Awake()
     {
         string jwtToken = PlayerPrefs.GetString("jwtToken", "");
@@ -38,6 +51,7 @@ public class UiController : MonoBehaviour
             homeScreenCanvas.SetActive(true);
             mainTryOnCanvas.SetActive(false);
             mediaPipeSolutionObject.enabled = false;
+            registerPanel.gameObject.SetActive(false);
             navigationStack.Push(initialPanel);
             initialPanel.offsetMin = Vector2.zero;
             initialPanel.offsetMax = Vector2.zero;
@@ -255,6 +269,8 @@ public class UiController : MonoBehaviour
                     yield break;
                 }
                 ShowSnackbar("Login Success", homeScreenCanvas.transform);
+                loginUsername.text = "";
+                loginPassword.text = "";
                 pushUI(initialPanel);
             }
             else
@@ -287,6 +303,9 @@ public class UiController : MonoBehaviour
             {
                 Debug.Log("Success...");
                 ShowSnackbar("Registration Success", homeScreenCanvas.transform);
+                regUsername.text = "";
+                regPassword.text = "";
+                regConfirm.text = "";
                 pushUI(loginPanel);
             }
             else
@@ -336,9 +355,9 @@ public class UiController : MonoBehaviour
     {
         PlayerPrefs.DeleteKey("jwtToken");
         PlayerPrefs.Save();
-        navigationStack.Clear();
-        navigationStack.Push(loginPanel);
+        loginPanel.gameObject.SetActive(true);
         pushUI(loginPanel);
+        stackclear(loginPanel);
         ShowSnackbar("Logout Successful, please log back in", mainTryOnCanvas.transform);
     }
 }

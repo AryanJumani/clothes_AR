@@ -18,7 +18,8 @@ public class RequestAllPermissions : MonoBehaviour
         {
             Permission.Camera,
             Permission.ExternalStorageRead,
-            Permission.ExternalStorageWrite
+            Permission.ExternalStorageWrite,
+            Permission.Microphone
         };
 
         foreach (string permission in permissionsToRequest)
